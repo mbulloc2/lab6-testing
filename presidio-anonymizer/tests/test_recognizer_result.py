@@ -284,6 +284,29 @@ def test_given_negative_start_or_endpoint_then_we_fail(start, end):
     ):
         create_recognizer_result("entity", 0, start, end)
 
+import pytest
+
+@pytest.mark.parametrize(
+    "a_start,a_end,b_start,b_end,expected",
+    [
+        (0, 5, 6, 10, 0),   # no overlap
+        (0, 5, 5, 10, 0),   # boundary touch -> 0
+        (0, 10, 8, 12, 2),  # partial
+        (5, 15, 0, 7, 2),   # partial
+        (0, 10, 2, 8, 6),   # b inside a
+        (2, 8, 0, 10, 6),   # a inside b
+        (3, 9, 3, 9, 6),    # identical
+    ],
+)
+def test_intersects(a_start, a_end, b_start, b_end, expected):
+    # pass required args to the helper
+    a = create_recognizer_result(entity_type="PERSON", score=0.8,
+                                 start=a_start, end=a_end)
+    b = create_recognizer_result(entity_type="PERSON", score=0.8,
+                                 start=b_start, end=b_end)
+    assert a.intersects(b) == expected
+
+
 
 def create_recognizer_result(entity_type: str, score: float, start: int, end: int):
     data = {"entity_type": entity_type, "score": score, "start": start, "end": end}
